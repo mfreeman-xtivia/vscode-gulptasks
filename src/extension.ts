@@ -1,32 +1,33 @@
 'use strict';
 
-import * as vscode from 'vscode';
-import * as process from './tasks-process';
+import { ExtensionContext } from 'vscode';
+import { workspace, window } from 'vscode';
+import { setCommandContext } from 'vscode';
+import { ProcessManager } from './io/process-manager';
+import { FileSystem } from './io/file-system';
+import { Explorer } from './views/explorer';
 
-import { TasksProvider } from './tasks-provider';
+export async function activate(context: ExtensionContext): void {
+  const processManager = new ProcessManager();
+  const fileSystem = new FileSystem(workspace.rootPath);
+  const explorer = new Explorer(context, processManager, fileSystem);
+  const provider = window.registerTreeDataProvider('gulptasks:explorer:tree', explorer);
 
-let _task: process.TaskContext | undefined;
+  try {
 
-function registerCommand(context: vscode.ExtensionContext, command: string, callback: (...args: any[]) => any): void {
-  const registration = vscode.commands.registerCommand(command, callback);
-  context.subscriptions.push(registration);
+    // Attempt to get the gulp version as a test for it availability
+    await processManager.getGulpVersion();
+  }
+  catch (ex) {
+      Logger.error(ex, 'Extension.activate');
+      if (ex.message.includes('Unable to find git')) {
+          await window.showErrorMessage(`GulpTasks was unable to find Git. Please make sure Git is installed. Also ensure that Git is either in the PATH, or that 'gitlens.advanced.git' is pointed to its installed location.`);
+      }
+      setCommandContext(CommandContext.Enabled, false);
+      return;
+  }
+
+  context.subscriptions.push(provider);
 }
 
-export function activate(context: vscode.ExtensionContext): void {
-  const workspaceRoot = vscode.workspace.rootPath;
-  const provider = new TasksProvider(workspaceRoot);
-  const registration = vscode.window.registerTreeDataProvider('gulptasks', provider);
-
-  registerCommand(context, 'gulptasks.select', task => _task = task);
-  registerCommand(context, 'gulptasks.execute', () => process.execute(_task));
-  registerCommand(context, 'gulptasks.terminate', () => process.terminate(_task));
-
-  registerCommand(context, 'gulptasks.refresh', () => {
-    provider.refresh();
-
-    // Clear the selected task - prevent execution without an tree item being selected
-    _task = undefined;
-  });
-
-  context.subscriptions.push(registration);
-}
+export function deactivate(): void { }
