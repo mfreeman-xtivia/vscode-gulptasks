@@ -10,9 +10,10 @@ export class FileService {
   discover(): Promise<File[]> {
     return new Promise<File[]>((resolve, reject) => {
 
-      // Use the workspace.findFiles() utility to discover any gulp files (based on the pattern setting)
+      // Use findFiles() in the workspace to get a list of potential files
+      // Unfortunately, this is not case in sensitive so we need everything to filter manually
       workspace
-        .findFiles(this.settings.pattern)
+        .findFiles('**/*')
         .then(uris => {
 
           // Convert and filter the results based on the filters setting
@@ -32,20 +33,31 @@ export class FileService {
   }
 
   private include(file: File): boolean {
+
+    // First check the pattern is valid for the file
+    if (!this.matched(file, this.settings.pattern)) {
+      return false;
+    }
+
+    // Then check against the filters
     for (const filter of this.settings.filters) {
-
-      // Match the file's relative path against the filter
-      const result = match([file.relativePath], filter, {
-        nocase: true,
-        matchBase: true
-      });
-
-      // If nothing is returned, then the file is not included
-      if (result.length === 0) {
+      if (!this.matched(file, filter)) {
         return false;
       }
     }
 
     return true;
+  }
+
+  private matched(file: File, pattern: string): boolean {
+
+    // Match the file's relative path
+    const result = match([file.relativePath], pattern, {
+      nocase: true,
+      matchBase: true
+    });
+
+    // a non-empty result means a match has been found
+    return result.length !== 0;
   }
 }

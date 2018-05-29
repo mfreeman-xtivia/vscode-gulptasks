@@ -24,19 +24,19 @@ export class GulpService {
   //   };
   // }
 
-  // tasks(file: File): Promise<string[]> {
-  //   return new Promise<string[]>((resolve, reject) => {
+  tasks(file: File): Promise<string[]> {
+    return new Promise<string[]>((resolve, reject) => {
 
-  //     // Load and return the tasks for the provided file
-  //     GulpService
-  //       .invoke(`gulp --tasks-simple --gulpfile "${file.absolutePath}"`, { cwd: this.root })
-  //       .then(result => {
-  //         const tasks = GulpService.sanitize(result);
-  //         resolve(tasks);
-  //       })
-  //       .catch(err => reject(err.message || err));
-  //   });
-  // }
+      // Load and return the tasks for the provided file
+      GulpService
+        .invoke(`gulp --tasks-simple --gulpfile "${file.absolutePath}"`, { cwd: this.root })
+        .then(result => {
+          const tasks = GulpService.sanitize(result);
+          resolve(tasks);
+        })
+        .catch(err => reject(err.message || err));
+    });
+  }
 
   static init(): Promise<GulpService> {
     return new Promise<GulpService>((resolve, reject) => {

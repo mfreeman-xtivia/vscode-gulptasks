@@ -12,13 +12,13 @@ export abstract class ExplorerNode {
   protected treeItem(label: string, collapsibleState: TreeItemCollapsibleState): TreeItem {
     const item = new TreeItem(label, collapsibleState);
 
-    // item.id = this.id;
-    // item.contextValue = `${EXTENSION_ID}:${this.type}`;
-    // item.command = {
-    //   title: '',
-    //   command: ActionCommand.Select,
-    //   arguments: [this.id, this.type]
-    // };
+    item.id = this.id;
+    item.contextValue = `${EXTENSION_ID}:${this.type}`;
+    item.command = {
+      title: label,
+      command: ActionCommand.Select,
+      arguments: [this.id, this.type]
+    };
 
     return item;
   }
