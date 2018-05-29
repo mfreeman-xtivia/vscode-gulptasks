@@ -2,7 +2,7 @@
 	"name": "gulptasks",
 	"displayName": "Gulp Tasks",
 	"description": "A gulp task visualization and execution extension for Visual Studio Code",
-	"version": "0.0.9",
+	"version": "1.0.0",
 	"author": {
 		"name": "Nick Dodd"
 	},
@@ -13,75 +13,76 @@
 		"url": "https://github.com/nickdodd79/vscode-gulptasks"
 	},
 	"engines": {
-		"vscode": "^1.17.0"
+		"vscode": "^1.22.0"
 	},
 	"icon": "resources/gulp-logo.png",
 	"categories": [
 		"Other"
 	],
-	"activationEvents": [
-		"onView:gulptasks"
-	],
 	"main": "./out/extension",
+	"activationEvents": [
+		"*"
+	],
 	"contributes": {
 		"configuration": {
 			"title": "Gulp Tasks configuration",
 			"properties": {
-        "gulptasks.file": {
-          "type": "string",
-					"default": "",
-					"description": "Specifies an extact gulp file to load. If the files doesn't exist, the discovery process resumes."
-        },
-        "gulptasks.discovery.dir": {
+				"gulptasks.pattern": {
 					"type": "string",
-					"default": "",
-					"description": "Specifies a directory where the gulpfile.js should be discovered."
+					"default": "**/gulpfile*.js",
+					"description": "A glob pattern for gulp file matching."
 				},
-        "gulptasks.discovery.dirExclusions": {
+				"gulptasks.runInTerminal": {
+					"type": "boolean",
+					"default": true,
+					"description": "Whether to run gulp tasks in a terminal window."
+				},
+				"gulptasks.filters": {
 					"type": "array",
 					"default": [
-						"node_modules/**",
-						"bower_components/**"
+						"!node_modules/**",
+						"!bower_components/**"
 					],
-					"description": "Specifies glob patterns used to exclude directories from discovery. Use '*' to exclude the root gulpfile.js."
+					"description": "An array of globs used to include and exclude workspace paths."
 				}
 			}
 		},
 		"views": {
 			"explorer": [
 				{
-					"id": "gulptasks",
-					"name": "Gulp Tasks"
+					"id": "gulptasks:explorer",
+					"name": "Gulp Tasks",
+					"when": "gulptasks:enabled"
 				}
 			]
 		},
 		"menus": {
 			"view/title": [
 				{
-					"command": "gulptasks.execute",
-					"when": "view == gulptasks",
+					"command": "gulptasks:execute",
+					"when": "view == gulptasks:explorer && gulptasks:canExecute",
 					"group": "navigation@1"
         },
 				{
-					"command": "gulptasks.terminate",
-					"when": "view == gulptasks",
+					"command": "gulptasks:terminate",
+					"when": "view == gulptasks:explorer && gulptasks:canTerminate",
 					"group": "navigation@2"
 				},
-        {
-					"command": "gulptasks.restart",
-					"when": "view == gulptasks",
+				{
+					"command": "gulptasks:restart",
+					"when": "view == gulptasks:explorer && gulptasks:canRestart",
 					"group": "navigation@3"
 				},
 				{
-					"command": "gulptasks.refresh",
-					"when": "view == gulptasks",
-					"group": "navigation@4"
+					"command": "gulptasks:refresh",
+					"when": "view == gulptasks:explorer",
+          "group": "navigation@4"
 				}
 			]
 		},
 		"commands": [
 			{
-				"command": "gulptasks.execute",
+				"command": "gulptasks:execute",
 				"title": "Execute Task",
 				"icon": {
 					"light": "resources/light/execute.svg",
@@ -89,15 +90,15 @@
 				}
       },
 			{
-				"command": "gulptasks.terminate",
+				"command": "gulptasks:terminate",
 				"title": "Terminate Task",
 				"icon": {
 					"light": "resources/light/terminate.svg",
 					"dark": "resources/dark/terminate.svg"
 				}
 			},
-      {
-				"command": "gulptasks.restart",
+			{
+				"command": "gulptasks:restart",
 				"title": "Restart Task",
 				"icon": {
 					"light": "resources/light/restart.svg",
@@ -105,7 +106,7 @@
 				}
 			},
 			{
-				"command": "gulptasks.refresh",
+				"command": "gulptasks:refresh",
 				"title": "Refresh Tasks",
 				"icon": {
 					"light": "resources/light/refresh.svg",
@@ -122,14 +123,12 @@
 		"test": "npm run compile && node ./node_modules/vscode/bin/test"
 	},
 	"dependencies": {
-		"filehound": "^1.16.2",
 		"minimatch": "^3.0.4"
 	},
 	"devDependencies": {
-		"@types/minimatch": "^3.0.1",
-		"@types/mocha": "^2.2.42",
-		"@types/node": "^7.0.43",
-		"typescript": "^2.5.3",
-		"vscode": "^1.1.5"
+		"@types/minimatch": "^3.0.3",
+		"@types/node": "^9.6.0",
+		"typescript": "^2.8.0",
+		"vscode": "^1.1.0"
 	}
 }
