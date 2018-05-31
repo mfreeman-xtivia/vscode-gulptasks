@@ -22,16 +22,16 @@ export class Explorer implements TreeDataProvider<ExplorerNode> {
 
   constructor(private readonly gulp: GulpService, private readonly files: FileService, private readonly commands: CommandService, private readonly logger: Logger) {
 
-  //   // Register handlers for the commands
-  //   this.commands.register(ActionCommand.Select, this.select, this);
-  //   this.commands.register(ActionCommand.Execute, this.execute, this);
-  //   this.commands.register(ActionCommand.Terminate, this.terminate, this);
-  //   this.commands.register(ActionCommand.Restart, this.restart, this);
+    // Register handlers for the commands
+    // this.commands.register(ActionCommand.Select, this.select, this);
+    // this.commands.register(ActionCommand.Execute, this.execute, this);
+    // this.commands.register(ActionCommand.Terminate, this.terminate, this);
+    // this.commands.register(ActionCommand.Restart, this.restart, this);
     this.commands.register(ActionCommand.Refresh, this.load, this);
   }
 
-  getTreeItem(node: ExplorerNode): Thenable<TreeItem> {
-    return node.getTreeItem();
+  getTreeItem(node: ExplorerNode): TreeItem {
+    return node;
   }
 
   getChildren(node?: ExplorerNode): ProviderResult<ExplorerNode[]> {

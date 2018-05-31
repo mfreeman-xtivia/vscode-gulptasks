@@ -2,24 +2,19 @@ import { TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { EXTENSION_ID } from '../models/constants';
 import { ActionCommand, ExplorerNodeType } from '../models/constants';
 
-export abstract class ExplorerNode {
+export abstract class ExplorerNode extends TreeItem {
 
-  constructor(private readonly id: string, private readonly type: ExplorerNodeType) { }
+  constructor(id: string, type: ExplorerNodeType, label: string, collapsibleState: TreeItemCollapsibleState) {
+    super(label, collapsibleState);
 
-  abstract getTreeItem(): Promise<TreeItem>;
-  abstract getChildren(): Promise<ExplorerNode[]>;
-
-  protected treeItem(label: string, collapsibleState: TreeItemCollapsibleState): TreeItem {
-    const item = new TreeItem(label, collapsibleState);
-
-    item.id = this.id;
-    item.contextValue = `${EXTENSION_ID}:${this.type}`;
-    item.command = {
+    this.id = id;
+    this.contextValue = `${EXTENSION_ID}:${type}`;
+    this.command = {
       title: label,
       command: ActionCommand.Select,
-      arguments: [this.id, this.type]
+      arguments: [id, type]
     };
-
-    return item;
   }
+
+  abstract getChildren?(): Promise<ExplorerNode[]>;
 }

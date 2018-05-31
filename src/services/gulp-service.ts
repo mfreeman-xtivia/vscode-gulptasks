@@ -3,7 +3,7 @@ import { join } from 'path';
 import { ExecOptions } from 'child_process';
 import { exec } from 'child_process'
 import { File } from '../models/file';
-import { Logger } from '../logging/logger';
+// import { Logger } from '../logging/logger';
 
 export class GulpService {
 

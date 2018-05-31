@@ -1,4 +1,4 @@
-import { TreeItem, TreeItemCollapsibleState } from 'vscode';
+import { TreeItemCollapsibleState } from 'vscode';
 import { ExplorerNodeType } from '../models/constants';
 import { ExplorerNode } from './explorer-node';
 import { FileNode } from './file-node';
@@ -8,13 +8,9 @@ export class RootNode extends ExplorerNode {
   private files: FileNode[];
 
   constructor(files?: FileNode[]) {
-    super('root', ExplorerNodeType.Root);
+    super('root', ExplorerNodeType.Root, 'Files', TreeItemCollapsibleState.Expanded);
 
     this.files = files || [];
-  }
-
-  async getTreeItem(): Promise<TreeItem> {
-    return await this.treeItem('Files', TreeItemCollapsibleState.Expanded);
   }
 
   async getChildren(): Promise<ExplorerNode[]> {
