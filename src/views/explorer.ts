@@ -1,5 +1,5 @@
 import { Event, EventEmitter, TreeItem, TreeDataProvider, ProviderResult } from 'vscode';
-import { ActionCommand } from '../models/constants';
+import { ActionCommand, ContextCommand } from '../models/constants';
 import { File } from '../models/file';
 import { Logger } from '../logging/logger';
 import { GulpService } from '../services/gulp-service';
@@ -12,7 +12,10 @@ import { TaskNode } from './task-node';
 
 export class Explorer implements TreeDataProvider<ExplorerNode> {
 
+  private selected: TaskNode;
+
   private root = new RootNode();
+  private tasks: TaskNode[] = [];
 
   private _onDidChangeTreeData = new EventEmitter<ExplorerNode>();
 
@@ -23,10 +26,10 @@ export class Explorer implements TreeDataProvider<ExplorerNode> {
   constructor(private readonly gulp: GulpService, private readonly files: FileService, private readonly commands: CommandService, private readonly logger: Logger) {
 
     // Register handlers for the commands
-    // this.commands.register(ActionCommand.Select, this.select, this);
-    // this.commands.register(ActionCommand.Execute, this.execute, this);
-    // this.commands.register(ActionCommand.Terminate, this.terminate, this);
-    // this.commands.register(ActionCommand.Restart, this.restart, this);
+    this.commands.register(ActionCommand.Select, this.select, this);
+    this.commands.register(ActionCommand.Execute, this.execute, this);
+    this.commands.register(ActionCommand.Terminate, this.terminate, this);
+    this.commands.register(ActionCommand.Restart, this.restart, this);
     this.commands.register(ActionCommand.Refresh, this.load, this);
   }
 
@@ -35,7 +38,7 @@ export class Explorer implements TreeDataProvider<ExplorerNode> {
   }
 
   getChildren(node?: ExplorerNode): ProviderResult<ExplorerNode[]> {
-    return node ? node.getChildren() : this.root.getChildren();
+    return node ? node.children() : this.root.children();
   }
 
   async load(): Promise<void> {
@@ -45,6 +48,38 @@ export class Explorer implements TreeDataProvider<ExplorerNode> {
     catch (ex) {
       this.logger.error(ex.message || ex);
     }
+  }
+
+  private select(node: TaskNode): void {
+    this.selected = node;
+    this.setContext();
+  }
+
+  private execute(): void {
+    if (this.selected) {
+      this.selected.executing = true;
+      this.setContext();
+    }
+  }
+
+  private terminate(): void {
+    if (this.selected) {
+      this.selected.executing = false;
+      this.setContext();
+    }
+  }
+
+  private restart(): void {
+    this.terminate();
+    this.execute();
+  }
+
+  private setContext(): void {
+    this.commands.context(ContextCommand.CanExecute, this.selected && !this.selected.executing);
+    this.commands.context(ContextCommand.CanTerminate, this.selected && this.selected.executing);
+    this.commands.context(ContextCommand.CanRestart, this.selected && this.selected.executing);
+
+    this._onDidChangeTreeData.fire();
   }
 
   private async loadRoot(): Promise<void> {
@@ -85,6 +120,9 @@ export class Explorer implements TreeDataProvider<ExplorerNode> {
       const node = new TaskNode(id, task);
 
       nodes.push(node);
+
+      // Track the task node for later observations
+      this.tasks.push(node);
     }
 
     return nodes;

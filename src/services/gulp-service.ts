@@ -46,7 +46,7 @@ export class GulpService {
 
       this
         .invoke(command, { cwd: workspace.rootPath })
-        .then(result => this.processResult(result, workspace.rootPath, resolve))
+        .then(result => this.process(result, workspace.rootPath, resolve))
         .catch(() => {
 
           // Then check if a local install is available (i.e. in node_modules)
@@ -54,7 +54,7 @@ export class GulpService {
 
           this
             .invoke(command, { cwd: local })
-            .then(result => this.processResult(result, local, resolve))
+            .then(result => this.process(result, local, resolve))
             .catch(err => reject(err.message || err));
         });
     });
@@ -77,7 +77,7 @@ export class GulpService {
       .filter(line => line !== '');
   }
 
-  private static processResult(result: string, root: string, resolve: (gulp: GulpService) => void): void {
+  private static process(result: string, root: string, resolve: (gulp: GulpService) => void): void {
     const versions = this.sanitize(result);
     const gulp = new GulpService(versions, root);
 

@@ -1,6 +1,7 @@
 import { TreeItem, TreeItemCollapsibleState } from 'vscode';
+import { join } from 'path';
 import { EXTENSION_ID } from '../models/constants';
-import { ActionCommand, ExplorerNodeType } from '../models/constants';
+import { ExplorerNodeType } from '../models/constants';
 
 export abstract class ExplorerNode extends TreeItem {
 
@@ -9,12 +10,18 @@ export abstract class ExplorerNode extends TreeItem {
 
     this.id = id;
     this.contextValue = `${EXTENSION_ID}:${type}`;
-    this.command = {
-      title: label,
-      command: ActionCommand.Select,
-      arguments: [id, type]
-    };
   }
 
-  abstract getChildren?(): Promise<ExplorerNode[]>;
+  abstract children(): Promise<ExplorerNode[]>;
+
+  protected icon(name: string): any {
+    return join(__filename, '..', '..', '..', 'resources', 'icons', `${name}.svg`);
+  }
+
+  protected iconTheme(name: string): any {
+    return {
+      dark: this.icon(`${name}-dark`),
+      light: this.icon(`${name}-light`)
+    };
+  }
 }

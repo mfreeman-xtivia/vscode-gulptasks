@@ -85,32 +85,32 @@
 				"command": "gulptasks:execute",
 				"title": "Execute Task",
 				"icon": {
-					"light": "resources/light/execute.svg",
-					"dark": "resources/dark/execute.svg"
+					"dark": "resources/icons/execute-dark.svg",
+					"light": "resources/icons/execute-light.svg"
 				}
       },
 			{
 				"command": "gulptasks:terminate",
 				"title": "Terminate Task",
 				"icon": {
-					"light": "resources/light/terminate.svg",
-					"dark": "resources/dark/terminate.svg"
+					"dark": "resources/icons/terminate-dark.svg",
+					"light": "resources/icons/terminate-light.svg"
 				}
 			},
 			{
 				"command": "gulptasks:restart",
 				"title": "Restart Task",
 				"icon": {
-					"light": "resources/light/restart.svg",
-					"dark": "resources/dark/restart.svg"
+					"dark": "resources/icons/restart-dark.svg",
+					"light": "resources/icons/restart-light.svg"
 				}
 			},
 			{
 				"command": "gulptasks:refresh",
 				"title": "Refresh Tasks",
 				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
+          "dark": "resources/icons/refresh-dark.svg",
+					"light": "resources/icons/refresh-light.svg"
 				}
 			}
 		]

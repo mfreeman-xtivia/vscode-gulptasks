@@ -13,7 +13,7 @@ export class RootNode extends ExplorerNode {
     this.files = files || [];
   }
 
-  async getChildren(): Promise<ExplorerNode[]> {
+  async children(): Promise<ExplorerNode[]> {
     return await this.files.sort((file1, file2) => {
 
       // Ensure the files are displayed alphabetically with root items at the top
