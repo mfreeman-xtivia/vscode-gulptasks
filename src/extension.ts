@@ -19,7 +19,7 @@ export function activate(context: ExtensionContext): void {
   logger.output.log('Initializing gulp...')
 
   GulpService
-    .init()
+    .resolveInstall()
     .then(async gulp => {
       const versions = gulp.versions.join('\r\n> ');
       logger.output.log(`> ${versions}`);
@@ -35,11 +35,11 @@ export function activate(context: ExtensionContext): void {
       context.subscriptions.push(provider);
 
       logger.output.log(`Let's get gulping...`);
-      await commands.context(ContextCommand.Enabled, true);
+      await commands.setContext(ContextCommand.Enabled, true);
     })
     .catch(async () => {
       logger.output.log(`> Unable to resolve gulp - try running 'npm i -g gulp'.`);
-      await commands.context(ContextCommand.Enabled, false);
+      await commands.setContext(ContextCommand.Enabled, false);
     });
 }
 

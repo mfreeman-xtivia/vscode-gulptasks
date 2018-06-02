@@ -24,43 +24,43 @@ export class GulpService {
   //   };
   // }
 
-  tasks(file: File): Promise<string[]> {
+  getFileTasks(file: File): Promise<string[]> {
     return new Promise<string[]>((resolve, reject) => {
 
       // Load and return the tasks for the provided file
       GulpService
-        .invoke(`gulp --tasks-simple --gulpfile "${file.absolutePath}"`, { cwd: this.root })
+        .invokeCommand(`gulp --tasks-simple --gulpfile "${file.absolutePath}"`, { cwd: this.root })
         .then(result => {
-          const tasks = GulpService.sanitize(result);
+          const tasks = GulpService.sanitizeResult(result);
           resolve(tasks);
         })
         .catch(err => reject(err.message || err));
     });
   }
 
-  static init(): Promise<GulpService> {
+  static resolveInstall(): Promise<GulpService> {
     return new Promise<GulpService>((resolve, reject) => {
 
       // First attempt to resolve a global installation
       const command = 'gulp --version';
 
       this
-        .invoke(command, { cwd: workspace.rootPath })
-        .then(result => this.process(result, workspace.rootPath, resolve))
+        .invokeCommand(command, { cwd: workspace.rootPath })
+        .then(result => this.processResult(result, workspace.rootPath, resolve))
         .catch(() => {
 
           // Then check if a local install is available (i.e. in node_modules)
           const local = join(workspace.rootPath, 'node_modules/.bin');
 
           this
-            .invoke(command, { cwd: local })
-            .then(result => this.process(result, local, resolve))
+            .invokeCommand(command, { cwd: local })
+            .then(result => this.processResult(result, local, resolve))
             .catch(err => reject(err.message || err));
         });
     });
   }
 
-  private static sanitize(lines: string): string[] {
+  private static sanitizeResult(lines: string): string[] {
     return lines
       .split(/\r{0,1}\n/)
       .map(line => {
@@ -77,14 +77,14 @@ export class GulpService {
       .filter(line => line !== '');
   }
 
-  private static process(result: string, root: string, resolve: (gulp: GulpService) => void): void {
-    const versions = this.sanitize(result);
+  private static processResult(result: string, root: string, resolve: (gulp: GulpService) => void): void {
+    const versions = this.sanitizeResult(result);
     const gulp = new GulpService(versions, root);
 
     resolve(gulp);
   }
 
-  private static invoke(command: string, options?: ExecOptions): Promise<string> {
+  private static invokeCommand(command: string, options?: ExecOptions): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       try {
 

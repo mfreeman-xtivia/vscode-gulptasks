@@ -1,5 +1,5 @@
 import { Event, EventEmitter, TreeItem, TreeDataProvider, ProviderResult } from 'vscode';
-import { ActionCommand, ContextCommand } from '../models/constants';
+import { ActionCommand, ContextCommand, ExplorerNodeType} from '../models/constants';
 import { File } from '../models/file';
 import { Logger } from '../logging/logger';
 import { GulpService } from '../services/gulp-service';
@@ -15,7 +15,6 @@ export class Explorer implements TreeDataProvider<ExplorerNode> {
   private selected: TaskNode;
 
   private root = new RootNode();
-  private tasks: TaskNode[] = [];
 
   private _onDidChangeTreeData = new EventEmitter<ExplorerNode>();
 
@@ -26,11 +25,11 @@ export class Explorer implements TreeDataProvider<ExplorerNode> {
   constructor(private readonly gulp: GulpService, private readonly files: FileService, private readonly commands: CommandService, private readonly logger: Logger) {
 
     // Register handlers for the commands
-    this.commands.register(ActionCommand.Select, this.select, this);
-    this.commands.register(ActionCommand.Execute, this.execute, this);
-    this.commands.register(ActionCommand.Terminate, this.terminate, this);
-    this.commands.register(ActionCommand.Restart, this.restart, this);
-    this.commands.register(ActionCommand.Refresh, this.load, this);
+    this.commands.registerCommand(ActionCommand.Select, this.selectTask, this);
+    this.commands.registerCommand(ActionCommand.Execute, this.executeTask, this);
+    this.commands.registerCommand(ActionCommand.Terminate, this.terminateTask, this);
+    this.commands.registerCommand(ActionCommand.Restart, this.restartTask, this);
+    this.commands.registerCommand(ActionCommand.Refresh, this.load, this);
   }
 
   getTreeItem(node: ExplorerNode): TreeItem {
@@ -42,59 +41,20 @@ export class Explorer implements TreeDataProvider<ExplorerNode> {
   }
 
   async load(): Promise<void> {
+    this.logger.output.log('Loading gulp tasks...');
+
     try {
-      await this.loadRoot()
+      this.root = await this.loadFiles();
+      this.render();
     }
     catch (ex) {
       this.logger.error(ex.message || ex);
     }
   }
 
-  private select(node: TaskNode): void {
-    this.selected = node;
-    this.setContext();
-  }
-
-  private execute(): void {
-    if (this.selected) {
-      this.selected.executing = true;
-      this.setContext();
-    }
-  }
-
-  private terminate(): void {
-    if (this.selected) {
-      this.selected.executing = false;
-      this.setContext();
-    }
-  }
-
-  private restart(): void {
-    this.terminate();
-    this.execute();
-  }
-
-  private setContext(): void {
-    this.commands.context(ContextCommand.CanExecute, this.selected && !this.selected.executing);
-    this.commands.context(ContextCommand.CanTerminate, this.selected && this.selected.executing);
-    this.commands.context(ContextCommand.CanRestart, this.selected && this.selected.executing);
-
-    this._onDidChangeTreeData.fire();
-  }
-
-  private async loadRoot(): Promise<void> {
-    this.logger.output.log('Loading gulp tasks...');
-
-    // Load the files and tasks into the container root node
-    this.root = await this.loadFiles();
-
-    // Fire the change event to reload the tree
-    this._onDidChangeTreeData.fire();
-  }
-
   private async loadFiles(): Promise<RootNode> {
     const nodes = [];
-    const files = await this.files.discover();
+    const files = await this.files.discoverGulpFiles();
 
     // Load the tasks for each discovered file
     for (const file of files) {
@@ -113,18 +73,64 @@ export class Explorer implements TreeDataProvider<ExplorerNode> {
 
   private async loadTasks(fileId: string, file: File): Promise<TaskNode[]> {
     const nodes = [];
-    const tasks = await this.gulp.tasks(file);
+    const tasks = await this.gulp.getFileTasks(file);
 
     for (const task of tasks) {
       const id = `${fileId}:${task}`;
       const node = new TaskNode(id, task);
 
       nodes.push(node);
-
-      // Track the task node for later observations
-      this.tasks.push(node);
     }
 
     return nodes;
+  }
+
+  private selectTask(node: ExplorerNode): void {
+
+    // Track the node if it is has a task type
+    this.selected = node.type === ExplorerNodeType.Task
+      ? node as TaskNode
+      : undefined;
+
+    this.render();
+  }
+
+  private executeTask(): void {
+    if (this.selected) {
+      this.selected.execute();
+      this.render();
+    }
+  }
+
+  private terminateTask(): void {
+    if (this.selected) {
+      this.selected.terminate();
+      this.render();
+    }
+  }
+
+  private restartTask(): void {
+    this.terminateTask();
+    this.executeTask();
+  }
+
+  private render(): void {
+
+    // Need to resolve the selected task and hide/show the action icons
+    let canExecute = false;
+    let canTerminate = false;
+    let canRestart = false;
+
+    if (this.selected) {
+      canExecute = !this.selected.executing;
+      canTerminate = this.selected.executing;
+      canRestart = this.selected.executing;
+    }
+
+    this.commands.setContext(ContextCommand.CanExecute, canExecute);
+    this.commands.setContext(ContextCommand.CanTerminate, canTerminate);
+    this.commands.setContext(ContextCommand.CanRestart, canRestart);
+
+    this._onDidChangeTreeData.fire();
   }
 }
