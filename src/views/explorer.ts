@@ -1,4 +1,4 @@
-import { Event, EventEmitter, TreeItem, TreeDataProvider, ProviderResult } from 'vscode';
+import { Event, EventEmitter, TreeItem, TreeDataProvider, ProviderResult, Disposable } from 'vscode';
 import { ExplorerNodeType} from '../models/constants';
 import { ActionCommand, ContextCommand} from '../models/constants';
 import { File } from '../models/file';
@@ -11,7 +11,7 @@ import { RootNode } from './root-node';
 import { FileNode } from './file-node';
 import { TaskNode } from './task-node';
 
-export class Explorer implements TreeDataProvider<ExplorerNode> {
+export class Explorer implements TreeDataProvider<ExplorerNode>, Disposable {
 
   private selected: TaskNode;
 
@@ -51,6 +51,12 @@ export class Explorer implements TreeDataProvider<ExplorerNode> {
     }
     catch (ex) {
       this.logger.error(ex.message || ex);
+    }
+  }
+
+  dispose(): void {
+    if (this.root) {
+      this.root.dispose();
     }
   }
 

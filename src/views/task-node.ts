@@ -27,6 +27,12 @@ export class TaskNode extends ExplorerNode {
     return [];
   }
 
+  dispose(): void {
+    if (this.task) {
+      this.task.dispose();
+    }
+  }
+
   private update(): void {
     this.iconPath = this.iconTheme(this.task ? 'execute' : 'idle')
   }

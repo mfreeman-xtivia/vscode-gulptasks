@@ -26,4 +26,10 @@ export class RootNode extends ExplorerNode {
       return file1.file.relativePath > file2.file.relativePath ? 1 : 0;
     });
   }
+
+  dispose(): void {
+    for (const file of this.files) {
+      file.dispose();
+    }
+  }
 }

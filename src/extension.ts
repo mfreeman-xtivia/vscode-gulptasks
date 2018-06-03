@@ -15,6 +15,8 @@ export function activate(context: ExtensionContext): void {
   const config = workspace.getConfiguration()
   const settings = config.get<Settings>(EXTENSION_ID);
 
+  context.subscriptions.push(logger);
+
   // Resolve a gulp service to be used (local or global)
   logger.output.log('Initializing gulp...')
 
@@ -32,6 +34,8 @@ export function activate(context: ExtensionContext): void {
 
       // Register the explorer as a tree provider for disposing
       const provider = window.registerTreeDataProvider(EXPLORER_ID, explorer);
+
+      context.subscriptions.push(explorer);
       context.subscriptions.push(provider);
 
       await commands.setContext(ContextCommand.Enabled, true);

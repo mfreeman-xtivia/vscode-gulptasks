@@ -1,7 +1,8 @@
+import { Disposable } from 'vscode';
 import { AlertLogger } from './alert-logger';
 import { OutputLogger } from './output-logger';
 
-export class Logger {
+export class Logger implements Disposable {
   readonly alert = new AlertLogger();
   readonly output = new OutputLogger();
 
@@ -12,11 +13,21 @@ export class Logger {
 
   warn(message: string): void {
     this.alert.warn(message);
-    this.output.log(`WARNING: ${message}`);
+
+    if (message) {
+      this.output.log(`WARNING: ${message}`);
+    }
   }
 
   error(message: string): void {
     this.alert.error(message);
-    this.output.log(`ERROR: ${message}`);
+
+    if (message) {
+      this.output.log(`ERROR: ${message}`);
+    }
+  }
+
+  dispose(): void {
+    this.output.dispose();
   }
 }
