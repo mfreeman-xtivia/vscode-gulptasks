@@ -1,5 +1,6 @@
 import { Event, EventEmitter, TreeItem, TreeDataProvider, ProviderResult } from 'vscode';
-import { ActionCommand, ContextCommand, ExplorerNodeType} from '../models/constants';
+import { ExplorerNodeType} from '../models/constants';
+import { ActionCommand, ContextCommand} from '../models/constants';
 import { File } from '../models/file';
 import { Logger } from '../logging/logger';
 import { GulpService } from '../services/gulp-service';
@@ -45,7 +46,8 @@ export class Explorer implements TreeDataProvider<ExplorerNode> {
 
     try {
       this.root = await this.loadFiles();
-      this.render();
+      this.update(this.selected);
+      this.logger.output.log(`Let's get gulping...`);
     }
     catch (ex) {
       this.logger.error(ex.message || ex);
@@ -77,7 +79,7 @@ export class Explorer implements TreeDataProvider<ExplorerNode> {
 
     for (const task of tasks) {
       const id = `${fileId}:${task}`;
-      const node = new TaskNode(id, task);
+      const node = new TaskNode(id, task, file);
 
       nodes.push(node);
     }
@@ -92,39 +94,97 @@ export class Explorer implements TreeDataProvider<ExplorerNode> {
       ? node as TaskNode
       : undefined;
 
-    this.render();
+    this.update(this.selected);
   }
 
   private executeTask(): void {
-    if (this.selected) {
-      this.selected.execute();
-      this.render();
+
+    // Track the selected node at point of execution in case it changes during execution
+    const node = this.selected;
+
+    if (node) {
+
+      // Create a task process and handle any output
+      // Also update the tree to switch icons and state
+      node.task = this.gulp.createTask(node.name, node.file, lines => {
+        this.logger.output.log(`> ${node.name}: ${lines.join('\r\n> ')}`);
+      });
+
+      this.update(node);
+
+      // Then execute the task and reset the tree upon completion
+      node.task
+        .execute()
+        .then(() => {
+          node.task = undefined;
+
+          this.update(node);
+
+          this.logger.output.log(`> ${node.name}: COMPLETED`);
+          this.logger.alert.info(`The task '${node.name}' has completed successfully.`);
+        })
+        .catch(() => {
+          node.task = undefined;
+
+          this.update(node);
+
+          this.logger.output.log(`> ${node.name}: FAILED`);
+          this.logger.alert.error(`The task '${node.name}' has failed.`);
+        });
     }
   }
 
   private terminateTask(): void {
-    if (this.selected) {
-      this.selected.terminate();
-      this.render();
+
+    // Track the selected node at point of execution in case it changes during execution
+    const node = this.selected;
+
+    if (node) {
+
+      // Kill the task process and update the tree
+      node.task
+        .terminate()
+        .then(() => {
+          node.task = undefined;
+
+          this.update(node);
+
+          this.logger.output.log(`> ${node.name}: TERMINATED`);
+          this.logger.alert.info(`The task '${node.name}' has been terminated.`);
+        });
     }
   }
 
   private restartTask(): void {
-    this.terminateTask();
-    this.executeTask();
+
+    // Track the selected node at point of execution in case it changes during execution
+    const node = this.selected;
+
+    if (node) {
+
+      // Terminate the task and when completed execute again
+      this.logger.output.log(`> ${node.name}: RESTARTING`);
+
+      node.task
+        .terminate()
+        .then(() => {
+          this.executeTask();
+          this.logger.alert.info(`The task '${node.name}' has been restarted.`);
+        });
+    }
   }
 
-  private render(): void {
+  private update(node: TaskNode): void {
 
     // Need to resolve the selected task and hide/show the action icons
     let canExecute = false;
     let canTerminate = false;
     let canRestart = false;
 
-    if (this.selected) {
-      canExecute = !this.selected.executing;
-      canTerminate = this.selected.executing;
-      canRestart = this.selected.executing;
+    if (node) {
+      canExecute = !node.task;
+      canTerminate = !!node.task;
+      canRestart = !!node.task;
     }
 
     this.commands.setContext(ContextCommand.CanExecute, canExecute);

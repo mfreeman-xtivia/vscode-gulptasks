@@ -34,7 +34,6 @@ export function activate(context: ExtensionContext): void {
       const provider = window.registerTreeDataProvider(EXPLORER_ID, explorer);
       context.subscriptions.push(provider);
 
-      logger.output.log(`Let's get gulping...`);
       await commands.setContext(ContextCommand.Enabled, true);
     })
     .catch(async () => {

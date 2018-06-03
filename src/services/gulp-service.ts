@@ -3,26 +3,34 @@ import { join } from 'path';
 import { ExecOptions } from 'child_process';
 import { exec } from 'child_process'
 import { File } from '../models/file';
-// import { Logger } from '../logging/logger';
+import { Task } from '../models/task';
 
 export class GulpService {
 
   constructor(public readonly versions: string[], private readonly root: string) { }
 
-  // create(name: string, file: File, logger: Logger): () => void {
-  //   return () => {
-  //     const process = exec(`gulp ${name} --gulpfile "${file.absolutePath}"`, { cwd: this.root });
+  createTask(name: string, file: File, logger: (lines: string[]) => void): Task {
+    return new Task(
+      callback => {
 
-  //     process.stdout.on('data', data => {
-  //       const value = data.toString();
-  //       const lines = GulpService.sanitize(value);
+        // Create the task process and bind the callback to return any errors
+        return exec(`gulp ${name} --gulpfile "${file.absolutePath}"`, { cwd: this.root }, err => {
+          if (callback) {
+            callback(err);
+          }
+        });
+      },
+      data => {
 
-  //       if (lines.length > 0) {
-  //         logger.output.log(`> ${name}: ${lines.join('\r\n> ')}`);
-  //       }
-  //     });
-  //   };
-  // }
+        // Convert the data to a set of lines
+        const value = data.toString();
+        const lines = GulpService.sanitizeResult(value);
+
+        if (logger && lines.length > 0) {
+          logger(lines);
+        }
+      });
+  }
 
   getFileTasks(file: File): Promise<string[]> {
     return new Promise<string[]>((resolve, reject) => {
@@ -60,6 +68,13 @@ export class GulpService {
     });
   }
 
+  private static processResult(result: string, root: string, resolve: (gulp: GulpService) => void): void {
+    const versions = this.sanitizeResult(result);
+    const gulp = new GulpService(versions, root);
+
+    resolve(gulp);
+  }
+
   private static sanitizeResult(lines: string): string[] {
     return lines
       .split(/\r{0,1}\n/)
@@ -75,13 +90,6 @@ export class GulpService {
         return line.replace(/^\s+|\s+$/g, '');
       })
       .filter(line => line !== '');
-  }
-
-  private static processResult(result: string, root: string, resolve: (gulp: GulpService) => void): void {
-    const versions = this.sanitizeResult(result);
-    const gulp = new GulpService(versions, root);
-
-    resolve(gulp);
   }
 
   private static invokeCommand(command: string, options?: ExecOptions): Promise<string> {
@@ -103,7 +111,6 @@ export class GulpService {
 
         // Reject if an error occurs
         reject(ex);
-        debugger;
       }
     });
   }

@@ -1,4 +1,5 @@
-import { commands, Disposable } from 'vscode';
+import { Disposable } from 'vscode';
+import { commands } from 'vscode';
 import { ActionCommand, ContextCommand } from "../models/constants";
 
 export class CommandService {

@@ -1,38 +1,33 @@
 import { TreeItemCollapsibleState } from 'vscode';
 import { ExplorerNodeType } from '../models/constants';
+import { File } from '../models/file';
+import { Task } from '../models/task';
 import { ExplorerNode } from './explorer-node';
 
 export class TaskNode extends ExplorerNode {
 
-  private _executing = false;
+  private _task: Task;
 
-  get executing(): boolean {
-    return this._executing;
+  get task(): Task {
+    return this._task;
+  }
+  set task(value: Task) {
+    this._task = value;
+    this.update();
   }
 
-  constructor(id: string, public readonly name: string) {
+  constructor(id: string, public readonly name: string, public readonly file: File) {
     super(id, ExplorerNodeType.Task, name, TreeItemCollapsibleState.None);
 
     // Initialize the icon
-    this.update(false);
+    this.update();
   }
 
   async children(): Promise<ExplorerNode[]> {
     return [];
   }
 
-  execute(): void {
-    this.update(true);
-  }
-
-  terminate(): void {
-    this.update(false);
-  }
-
-  private update(executing: boolean): void {
-    this._executing = executing;
-
-    // Update the icon based on the executing state
-    this.iconPath = this.iconTheme(this.executing ? 'execute' : 'idle')
+  private update(): void {
+    this.iconPath = this.iconTheme(this.task ? 'execute' : 'idle')
   }
 }
