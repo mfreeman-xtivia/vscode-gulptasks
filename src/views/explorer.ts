@@ -112,8 +112,8 @@ export class Explorer implements TreeDataProvider<ExplorerNode>, Disposable {
 
       // Create a task process and handle any output
       // Also update the tree to switch icons and state
-      node.task = this.gulp.createTask(node.name, node.file, lines => {
-        this.logger.output.log(`> ${node.name}: ${lines.join('\r\n> ')}`);
+      node.task = this.gulp.createTask(node.name, node.file, output => {
+        this.logger.output.log(`> ${node.name}: ${output}`);
       });
 
       this.update(node);

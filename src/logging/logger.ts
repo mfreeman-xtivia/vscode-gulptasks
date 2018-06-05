@@ -3,6 +3,7 @@ import { AlertLogger } from './alert-logger';
 import { OutputLogger } from './output-logger';
 
 export class Logger implements Disposable {
+
   readonly alert = new AlertLogger();
   readonly output = new OutputLogger();
 

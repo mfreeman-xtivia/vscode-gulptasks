@@ -11,7 +11,7 @@ export class FileService {
     return new Promise<File[]>((resolve, reject) => {
 
       // Use findFiles() in the workspace to get a list of potential files
-      // Unfortunately, this is not case in sensitive so we need everything to filter manually
+      // Unfortunately, this is case sensitive so we need everything to filter manually
       workspace
         .findFiles('**/*')
         .then(uris => {
@@ -40,7 +40,7 @@ export class FileService {
       matchBase: true
     });
 
-    // a non-empty result means a match has been found
+    // A non-empty result means a match has been found
     return result.length !== 0;
   }
 

@@ -7,13 +7,15 @@ import { Logger } from './logging/logger';
 import { GulpService } from './services/gulp-service';
 import { FileService } from './services/file-service';
 import { CommandService } from './services/command-service';
+import { ProcessService } from './services/process-service';
 import { Explorer } from './views/explorer';
 
 export function activate(context: ExtensionContext): void {
   const logger = new Logger();
-  const commands = new CommandService();
   const config = workspace.getConfiguration()
   const settings = config.get<Settings>(EXTENSION_ID);
+  const commands = new CommandService();
+  const processes = new ProcessService(settings);
 
   context.subscriptions.push(logger);
 
@@ -21,7 +23,7 @@ export function activate(context: ExtensionContext): void {
   logger.output.log('Initializing gulp...')
 
   GulpService
-    .resolveInstall()
+    .resolveInstall(processes)
     .then(async gulp => {
       const versions = gulp.versions.join('\r\n> ');
       logger.output.log(`> ${versions}`);

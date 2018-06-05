@@ -1,50 +1,39 @@
 import { Disposable } from 'vscode';
-import { ChildProcess } from 'child_process';
 
 type ErrorCallback = (err?: Error) => void;
+type ProcessTerminator = () => Promise<void>;
 
 export class Task implements Disposable {
 
-  private process: ChildProcess;
+  private terminator: ProcessTerminator;
 
-  constructor(private readonly factory: (callback: ErrorCallback) => ChildProcess, private readonly callback: (data: any) => void) { }
+  constructor(private readonly invoker: (callback: ErrorCallback) => ProcessTerminator) { }
 
   execute(): Promise<void> {
 
-    // Resolve immediately if a process already exists or no factory defined
-    if (this.process || !this.factory) {
+    // Resolve immediately if the task is already running or no invoker is defined
+    if (this.terminator || !this.invoker) {
       return Promise.resolve();
     }
 
     return new Promise<void>((resolve, reject) => {
 
-      // Create a process and listen for the events to resolve the promise
-      // As well as handlers for the process output
-      const callback = this.callback || (() => { });
-
-      this.process = this.factory(err => err ? reject() : resolve());
-
-      this.process.stdout.on('data', callback);
-      this.process.stderr.on('data', callback);
+      // Invoke the task process and resolve the promise appropriately
+      // Track the process instance to terminate later
+      this.terminator = this.invoker(err => err ? reject() : resolve());
     });
   }
 
   terminate(): Promise<void> {
 
-    // Check a process is active
-    const process: any = this.process;
-
-    if (!process || process.exitCode) {
+    // If no process then resolve immediately
+    if (!this.terminator) {
       return Promise.resolve();
     }
 
-    return new Promise<void>(resolve => {
-
-      // Kill the process to invoke the exit
-      // Listen for the exit command to resolve the promise
-      this.process.on('exit', () => resolve());
-      this.process.kill();
-    });
+    // Otherwise invoke the process termination
+    const promise = this.terminator();
+    return promise.then(() => this.terminator = undefined);
   }
 
   dispose(): void {
