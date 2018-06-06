@@ -5,9 +5,15 @@ import { File } from '../models/file';
 
 export class FileService {
 
-  constructor(private readonly settings: Settings) { }
+  private _settings: Settings;
+
+  constructor(private readonly settings: () => Settings) { }
 
   discoverGulpFiles(): Promise<File[]> {
+
+    // Load the settings on demand to ensure the latest values are available
+    this._settings = this.settings();
+
     return new Promise<File[]>((resolve, reject) => {
 
       // Use findFiles() in the workspace to get a list of potential files
@@ -47,12 +53,12 @@ export class FileService {
   private shouldInclude(file: File): boolean {
 
     // First check the pattern is valid for the file
-    if (!this.isMatch(file, this.settings.pattern)) {
+    if (!this.isMatch(file, this._settings.pattern)) {
       return false;
     }
 
     // Then check against the filters
-    for (const filter of this.settings.filters) {
+    for (const filter of this._settings.filters) {
       if (!this.isMatch(file, filter)) {
         return false;
       }

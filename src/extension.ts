@@ -14,8 +14,10 @@ export function activate(context: ExtensionContext): void {
   const logger = new Logger();
   const commands = new CommandService();
   const processes = new ProcessService();
-  const config = workspace.getConfiguration()
-  const settings = config.get<Settings>(EXTENSION_ID);
+  const settings = () => {
+    const config = workspace.getConfiguration()
+    return config.get<Settings>(EXTENSION_ID);
+  };
 
   context.subscriptions.push(logger);
 
