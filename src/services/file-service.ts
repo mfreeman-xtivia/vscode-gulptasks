@@ -28,7 +28,7 @@ export class FileService {
 
           resolve(files);
         },
-        err => reject(err.message || err));
+        err => reject(err));
     });
   }
 

@@ -7,20 +7,20 @@ export class Task implements Disposable {
 
   private terminator: ProcessTerminator;
 
-  constructor(private readonly invoker: (callback: ErrorCallback) => ProcessTerminator) { }
+  constructor(private readonly executor: (callback: ErrorCallback) => ProcessTerminator) { }
 
   execute(): Promise<void> {
 
-    // Resolve immediately if the task is already running or no invoker is defined
-    if (this.terminator || !this.invoker) {
+    // Resolve immediately if no executor is defined or the task is already running
+    if (!this.executor || this.terminator) {
       return Promise.resolve();
     }
 
     return new Promise<void>((resolve, reject) => {
 
-      // Invoke the task process and resolve the promise appropriately
+      // Execute the task process and resolve the promise appropriately
       // Track the process instance to terminate later
-      this.terminator = this.invoker(err => err ? reject() : resolve());
+      this.terminator = this.executor(err => err ? reject(err) : resolve());
     });
   }
 

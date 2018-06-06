@@ -12,10 +12,10 @@ import { Explorer } from './views/explorer';
 
 export function activate(context: ExtensionContext): void {
   const logger = new Logger();
+  const commands = new CommandService();
+  const processes = new ProcessService();
   const config = workspace.getConfiguration()
   const settings = config.get<Settings>(EXTENSION_ID);
-  const commands = new CommandService();
-  const processes = new ProcessService(settings);
 
   context.subscriptions.push(logger);
 
@@ -25,8 +25,8 @@ export function activate(context: ExtensionContext): void {
   GulpService
     .resolveInstall(processes)
     .then(async gulp => {
-      const versions = gulp.versions.join('\r\n> ');
-      logger.output.log(`> ${versions}`);
+      const output = gulp.context.join('\r\n> ');
+      logger.output.log(`> ${output}`);
 
       // Load the explorer tree
       const files = new FileService(settings);
@@ -42,8 +42,12 @@ export function activate(context: ExtensionContext): void {
 
       await commands.setContext(ContextCommand.Enabled, true);
     })
-    .catch(async () => {
-      logger.output.log(`> Unable to resolve gulp - try running 'npm i -g gulp'.`);
+    .catch(async err => {
+      const message = err
+        ? err.message || err
+        : `try running 'npm i -g gulp'`;
+
+      logger.output.log(`Unable to resolve gulp - ${message}.`);
       await commands.setContext(ContextCommand.Enabled, false);
     });
 }

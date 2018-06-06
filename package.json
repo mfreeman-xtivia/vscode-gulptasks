@@ -32,11 +32,6 @@
 					"default": "**/gulpfile*.js",
 					"description": "A glob pattern for gulp file matching."
 				},
-				"gulptasks.runInTerminal": {
-					"type": "boolean",
-					"default": true,
-					"description": "Whether to run gulp tasks in a terminal window."
-				},
 				"gulptasks.filters": {
 					"type": "array",
 					"default": [
