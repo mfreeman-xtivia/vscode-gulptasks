@@ -1,3 +1,22 @@
+## 1.0.0
+- Provides a new UI that supports multiple gulp files in a workspace.
+- Added icons to indicate execution state of a task.
+- Fixed process output for long running tasks (e.g. gulp.watch).
+- Supports global and local installs of gulp.
+- Includes workspace specific environmental variables for gulp processes.
+
+## 0.0.13
+- Added terminal execution and 'runInTerminal' setting (defaults to false).
+
+## 0.0.12
+- Updated readme to remove global gulp install comment (no code changes).
+
+## 0.0.11
+- Changed gulp install discovery to include project 'node_modules/.bin' path.
+
+## 0.0.10
+- Changed file searching to be case insensitive.
+
 ## 0.0.9
 - Added a config option to specify an exact gulp file to load.
 - Added output message when loading of gulp tasks fails.
