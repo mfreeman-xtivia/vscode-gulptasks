@@ -1,19 +1,14 @@
 import { workspace } from 'vscode';
 import { match } from 'minimatch';
+import { EXTENSION_ID } from '../models/constants';
 import { Settings } from '../models/settings';
 import { File } from '../models/file';
 
 export class FileService {
 
-  private _settings: Settings;
-
-  constructor(private readonly settings: () => Settings) { }
+  private settings: Settings;
 
   discoverGulpFiles(): Promise<File[]> {
-
-    // Load the settings on demand to ensure the latest values are available
-    this._settings = this.settings();
-
     return new Promise<File[]>((resolve, reject) => {
 
       // Use findFiles() in the workspace to get a list of potential files
@@ -21,6 +16,10 @@ export class FileService {
       workspace
         .findFiles('**/*')
         .then(uris => {
+
+          // Load the settings used to discover the files
+          const config = workspace.getConfiguration();
+          this.settings = config.get<Settings>(EXTENSION_ID);
 
           // Convert and filter the results based on the filters setting
           const files = uris
@@ -53,12 +52,12 @@ export class FileService {
   private shouldInclude(file: File): boolean {
 
     // First check the pattern is valid for the file
-    if (!this.isMatch(file, this._settings.pattern)) {
+    if (!this.isMatch(file, this.settings.pattern)) {
       return false;
     }
 
     // Then check against the filters
-    for (const filter of this._settings.filters) {
+    for (const filter of this.settings.filters) {
       if (!this.isMatch(file, filter)) {
         return false;
       }

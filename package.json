@@ -39,6 +39,29 @@
 						"!bower_components/**"
 					],
 					"description": "An array of globs used to include and exclude workspace paths."
+        },
+        "gulptasks.file": {
+					"type": "string",
+					"default": "",
+					"description": "[DEPRECATED] Specifies an extact gulp file to load. If the files doesn't exist, the discovery process resumes. This has been deprecated and 'gulptasks.pattern' should be used."
+        },
+        "gulptasks.runInTerminal": {
+					"type": "boolean",
+					"default": false,
+					"description": "[DEPRECATED] Specifies whether gulp tasks are run in a terminal. Otherwise an output window is used."
+				},
+				"gulptasks.discovery.dir": {
+					"type": "string",
+					"default": "",
+					"description": "[DEPRECATED] Specifies a directory where the gulpfile.js should be discovered. This has been deprecated and 'gulptasks.filters' should be used."
+				},
+				"gulptasks.discovery.dirExclusions": {
+					"type": "array",
+					"default": [
+						"node_modules/**",
+						"bower_components/**"
+					],
+					"description": "[DEPRECATED] Specifies glob patterns used to exclude directories from discovery. Use '*' to exclude the root gulpfile.js. This has been deprecated and 'gulptasks.filters' should be used."
 				}
 			}
 		},

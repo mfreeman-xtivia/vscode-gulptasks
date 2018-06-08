@@ -45,6 +45,11 @@ export class Explorer implements TreeDataProvider<ExplorerNode>, Disposable {
     this.logger.output.log('Loading gulp tasks...');
 
     try {
+
+      // Dispose before rebuilding to ensure node resources are released
+      this.dispose();
+
+      // Build the tree
       this.root = await this.loadFiles();
       this.update(this.selected);
       this.logger.output.log(`Let's get gulping...`);

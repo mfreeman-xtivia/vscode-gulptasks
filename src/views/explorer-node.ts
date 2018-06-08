@@ -4,6 +4,11 @@ import { EXTENSION_ID } from '../models/constants';
 import { ExplorerNodeType } from '../models/constants';
 import { ActionCommand } from '../models/constants';
 
+interface IconTheme {
+  dark: string;
+  light: string;
+}
+
 export abstract class ExplorerNode extends TreeItem implements Disposable {
 
   constructor(public readonly id: string, public readonly type: ExplorerNodeType, label: string, collapsibleState: TreeItemCollapsibleState) {
@@ -21,11 +26,11 @@ export abstract class ExplorerNode extends TreeItem implements Disposable {
   abstract children(): Promise<ExplorerNode[]>;
   abstract dispose(): void;
 
-  protected icon(name: string): any {
+  protected icon(name: string): string {
     return join(__filename, '..', '..', '..', 'resources', 'icons', `${name}.svg`);
   }
 
-  protected iconTheme(name: string): any {
+  protected iconTheme(name: string): IconTheme {
     return {
       dark: this.icon(`${name}-dark`),
       light: this.icon(`${name}-light`)

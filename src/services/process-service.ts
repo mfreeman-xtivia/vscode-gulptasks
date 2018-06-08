@@ -1,9 +1,30 @@
+import { workspace } from 'vscode';
+import { ExecOptions } from 'child_process';
 import { exec } from 'child_process';
 import { Process } from '../models/process';
 
+interface PathInfo {
+  key: string;
+  paths: string[];
+}
+
 export class ProcessService {
 
-  createProcess(root: string, args: any[], callback?: (data: string) => void): Process {
+  private configKey: string;
+
+  constructor() {
+
+    // Resolve the current platform and the config key to access env values
+    if (process.platform === 'win32') {
+      this.configKey = 'terminal.integrated.env.windows';
+    } else  if (process.platform === 'darwin') {
+      this.configKey = 'terminal.integrated.env.osx';
+    } else if (process.platform === 'linux') {
+      this.configKey = 'terminal.integrated.env.linux';
+    }
+  }
+
+  createProcess(root: string, args: string[], callback?: (data: string) => void): Process {
     let proc;
 
     return new Process(
@@ -16,9 +37,9 @@ export class ProcessService {
           }
 
           // Attempt to invoke the command
-          const env = process.env;
+          const options = this.buildOptions(root);
 
-          proc = exec(`gulp ${args.join(' ')}`, { cwd: root, env: env }, (err, stdout) => {
+          proc = exec(`gulp ${args.join(' ')}`, options, (err, stdout) => {
 
             // Clear the proc variable as it has now completed
             proc = undefined;
@@ -59,5 +80,50 @@ export class ProcessService {
         });
       }
     );
+  }
+
+  private buildOptions(root: string): ExecOptions {
+
+    // Get the process env and configured env values
+    const env = Object.assign({}, process.env);
+    const config = workspace.getConfiguration(this.configKey);
+
+    // Resolve the env and config path values
+    const delimiter = process.platform === 'win32' ? ';' : ':';
+    const envInfo = this.getPathInfo(env, delimiter);
+    const configInfo = this.getPathInfo(config, delimiter);
+
+    // Merge the process and config paths
+    const paths = [...envInfo.paths, ...configInfo.paths];
+
+    env[envInfo.key] = paths
+      .filter(path => !!path)
+      .join(delimiter);
+
+    return {
+      cwd: root,
+      env: env
+    };
+  }
+
+  private getPathInfo(obj: any, delimiter: string): PathInfo {
+
+    // Find a case insensitive path key
+    const config = {
+      key: Object.keys(obj).find(key => key.toLowerCase() === 'path'),
+      paths: []
+    }
+
+    if (config.key) {
+
+      // Then get the value and split by the OS delimiter
+      const value = obj[config.key];
+
+      if (value) {
+        config.paths = value.split(delimiter);
+      }
+    }
+
+    return config;
   }
 }
