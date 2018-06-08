@@ -48,7 +48,7 @@ async function executeProcess(context: TaskContext): Promise<void> {
     _terminal.sendText(`cd ${context.workingDirectory}`);
     _terminal.sendText(command);
 
-    utils.showInfo(`The execution of '${context.task}' completed successfully.`, `Executed '${context.task}'.`);
+    //utils.showInfo(`The execution of '${context.task}' completed successfully.`, `Executed '${context.task}'.`);
 
   } else {
 
@@ -73,7 +73,7 @@ async function executeProcess(context: TaskContext): Promise<void> {
           }
         }
 
-        utils.showInfo(`The execution of '${context.task}' completed successfully.`, `Executed '${context.task}'.`);
+        //utils.showInfo(`The execution of '${context.task}' completed successfully.`, `Executed '${context.task}'.`);
 
         // Clear the cached process - it has completed and so cannot be terminated
         _cache[context.task] = undefined;
